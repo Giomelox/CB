@@ -1,0 +1,425 @@
+import pandas as pd
+from openpyxl.styles import PatternFill, Font, Alignment
+from openpyxl.styles.borders import Border, Side
+
+def formatar_linha(worksheet, cor_fundo, cor_fonte, cor_borda):
+    for linha in worksheet.iter_rows(min_row = 1, max_row = 1, min_col = 1, max_col = 13):
+        for celula in linha:
+            celula.fill = PatternFill(start_color = cor_fundo, end_color = cor_fundo, fill_type = 'solid')
+            celula.font = Font(color = cor_fonte, name = 'calibri', size = 11, bold = True)
+            celula.alignment = Alignment(horizontal = 'center', vertical = 'center', wrap_text = True)
+            celula.border = Border(left = Side (style = 'thin', color = cor_borda),
+                                   right = Side (style = 'thin', color = cor_borda),
+                                   top = Side (style = 'thin', color = cor_borda),
+                                   bottom = Side (style = 'thin', color = cor_borda),
+                                   )
+
+def formatar_linha1(worksheet, cor_fundo, cor_fonte, cor_borda):
+    for linha in worksheet.iter_rows(min_row = 1, max_row = 1, min_col = 1, max_col = 3):
+        for celula in linha:
+            celula.fill = PatternFill(start_color = cor_fundo, end_color = cor_fundo, fill_type = 'solid')
+            celula.font = Font(color = cor_fonte, name = 'calibri', size = 11, bold = True)
+            celula.alignment = Alignment(horizontal = 'center', vertical = 'center', wrap_text = True)
+            celula.border = Border(left = Side (style = 'thin', color = cor_borda),
+                                   right = Side (style = 'thin', color = cor_borda),
+                                   top = Side (style = 'thin', color = cor_borda),
+                                   bottom = Side (style = 'thin', color = cor_borda),
+                                   )
+            
+def formatar_linha2(worksheet, cor_fundo, cor_fonte, cor_borda):
+    for linha in worksheet.iter_rows(min_row = 1, max_row = 1, min_col = 1, max_col = 5):
+        for celula in linha:
+            celula.fill = PatternFill(start_color = cor_fundo, end_color = cor_fundo, fill_type = 'solid')
+            celula.font = Font(color = cor_fonte, name = 'calibri', size = 11, bold = True)
+            celula.alignment = Alignment(horizontal = 'center', vertical = 'center', wrap_text = True)
+            celula.border = Border(left = Side (style = 'thin', color = cor_borda),
+                                   right = Side (style = 'thin', color = cor_borda),
+                                   top = Side (style = 'thin', color = cor_borda),
+                                   bottom = Side (style = 'thin', color = cor_borda),
+                                   )
+
+def formatar_linha3(worksheet, cor_fundo, cor_fonte, cor_borda):
+    for linha in worksheet.iter_rows(min_row = 2, max_row = 2, min_col = 1, max_col = 3):
+        for celula in linha:
+            celula.fill = PatternFill(start_color = cor_fundo, end_color = cor_fundo, fill_type = 'solid')
+            celula.font = Font(color = cor_fonte, name = 'calibri', size = 11, bold = True)
+            celula.alignment = Alignment(horizontal = 'center', vertical = 'center', wrap_text = True)
+            celula.border = Border(left = Side (style = 'thin', color = cor_borda),
+                                   right = Side (style = 'thin', color = cor_borda),
+                                   top = Side (style = 'thin', color = cor_borda),
+                                   bottom = Side (style = 'thin', color = cor_borda),
+                                   )
+
+# Planilha de operações diárias do mês
+
+df = pd.read_excel('Escritório/Operações Diárias julho.xlsx', sheet_name = 'Reports')
+
+valores = df.iloc[88:95, [0,1,3]]
+
+valores.columns = ['Centros', 'Vendas', 'Contas']
+
+valores.to_excel('Valores_Extraídos.xlsx', sheet_name = 'Operações diárias do mês', index = False, header = True)
+
+#=========================================================================================================================================================================================
+# Planilha do Mix de vendas e de funcionários
+
+
+#Separar a coluna G e H juntas do menor para o maior
+df_funcionarios = pd.read_excel('Escritório/27_CB_Recife_Mix_de_Vendas_e_de_Funcionários_De_12_08_a_18_08_24.xlsx', sheet_name = 'Mix de Vendas de Funcionários')
+
+funcionarios = df_funcionarios.iloc[6: , [3,6,7,8]]
+
+funcionarios.columns = ['Nº de vendas','Nome do funcionário', 'Nome do grupo de família', 'Nome do grupo principal']
+
+# Ordena os números da coluna 'Nome do funcionário' e 'Nome do grupo de família' do menor para o maior
+funcionarios = funcionarios.sort_values(['Nome do funcionário', 'Nome do grupo de família', 'Nome do grupo principal', 'Nº de vendas'])
+
+funcionarios_grouped = funcionarios.groupby(['Nome do funcionário', 'Nome do grupo de família', 'Nome do grupo principal', 'Nº de vendas']).size().reset_index(name='Quantidade')
+
+resultado = funcionarios_grouped.groupby(['Nome do funcionário', 'Nome do grupo de família', 'Nome do grupo principal']).sum().reset_index()
+
+# Salvando o resultado em um novo arquivo Excel
+resultado.to_excel('Funcionarios.xlsx', sheet_name='Mix de vendas e funcionários', index=False)
+
+#=========================================================================================================================================================================================
+# Planilha das finanças dos funcionários
+
+df_finanças = pd.read_excel('Escritório/Finanças_dos_Funcionários.xlsx', sheet_name = 'Reports')
+
+finanças = df_finanças.iloc[8:, 0:4]
+
+# Renomeando as colunas para facilitar o acesso
+finanças.columns = ['Nome do Funcionário', 'Valor de Vendas Líquidas', 'Valor das Taxas de Serviço', 'Receita Total']
+
+# Realizando o cálculo da 'Taxa de Aproveitamento' a partir da segunda linha
+finanças['Taxa de Aproveitamento'] = ((finanças['Valor de Vendas Líquidas'].iloc[1:] * 100) / finanças['Receita Total'].iloc[1:]) / 100
+
+# Adicionando o cabeçalho na nova coluna
+finanças.iloc[0, finanças.columns.get_loc('Taxa de Aproveitamento')] = 'Taxa de Aproveitamento'
+
+finanças.to_excel('Finanças.xlsx', sheet_name = 'Finanças dos funcionários', index = False, header = False)
+
+#=========================================================================================================================================================================================
+# Planilha geral do courvet artistico
+
+# Carregar os dados
+df_valorcouvert = pd.read_excel('Escritório/1_5021836570353730546.xlsx', sheet_name='Base Anulações')
+df_couvert = pd.read_excel('Escritório/1_5021836570353730546.xlsx', sheet_name='Consolidado')
+
+# Selecionar os dados e converter para objeto
+valor_couvert = df_valorcouvert.iloc[9, 2]
+couvert = df_couvert.iloc[2:, 1:10]
+
+couvert['Valor anulado couvert'] = valor_couvert
+couvert['Porcentagem Anulados Salão'] = '=(G49/B49)'
+couvert['Porcentagem Anulados Vasto Program 2'] = '=(H49/C49)'
+couvert['Porcentagem Anulados Vasto Program 3'] = '=(I49/D49)'
+
+# Salvar o resultado
+couvert.to_excel('Couvert.xlsx', sheet_name='Couvert Artistico', index=False)
+
+#=========================================================================================================================================================================================
+# Planilha geral dos vinhos
+
+df_vinhos = pd.read_excel('Escritório/Mix de Vendas (31).xlsx', sheet_name = 'Reports')
+
+vinhos = df_vinhos.iloc[909:1003, [0,1,9]]
+
+vinhos.columns = ['Nome', 'Total de Vendas Brutas', 'Preço Médio']
+
+vinhos.to_excel('Vinhos.xlsx', sheet_name = 'Controle de Vinhos', index = False)
+
+#=========================================================================================================================================================================================
+
+# Juntas as planilhas em uma só
+arquivos_excel = ['Valores_Extraídos.xlsx', 'Funcionarios.xlsx', 'Finanças.xlsx', 'Couvert.xlsx', 'Vinhos.xlsx']
+
+arquivo_destino = 'Relatório Geral.xlsx'
+
+planilhas = {}
+
+nomes_folhas = ['Operações diárias do mês', 'Mix de vendas e funcionários', 'Finanças dos funcionários', 'Couvert Artistico', 'Controle de Vinhos']
+
+for arquivo, nome_folha in zip(arquivos_excel, nomes_folhas):
+    try:
+        df = pd.read_excel(arquivo) 
+    except Exception as e:
+        raise ValueError(f"Erro ao ler o arquivo '{arquivo}': {str(e)}")
+    planilhas[nome_folha] = df
+
+with pd.ExcelWriter(arquivo_destino) as writer:
+    for nome_folha, df in planilhas.items():
+        df.to_excel(writer, sheet_name = nome_folha, index = False)
+
+#=========================================================================================================================================================================================
+from openpyxl import load_workbook
+
+workbook = load_workbook('Relatório Geral.xlsx')
+
+sheet_ODM = workbook['Operações diárias do mês']
+
+# Adiciona a lista de valores na primeira linha da planilha
+linha1_ODM = [
+    'Centros',
+    'Vendas',
+    'Contas'
+]
+for col, valor in enumerate(linha1_ODM, start = 1):
+    sheet_ODM.cell(row = 1, column = col, value = valor)
+
+# Adiciona a largura e altura das colunas
+largura_colunas = [
+14.00, 
+14.50, 
+9.00
+]
+for i, largura in enumerate(largura_colunas, start = 1):
+    sheet_ODM.column_dimensions[chr(64 + i)].width = largura
+
+# Converte a coluna J para Reais
+for row in range(1, sheet_ODM.max_row + 1): 
+    cellODM = sheet_ODM[f'B{row}']  
+    cellODM.number_format = 'R$ #,##0.00'
+
+# Adiciona as formatações da primeira linha
+formatar_linha1(sheet_ODM, cor_fundo = '9BC2E6', cor_fonte = '000000', cor_borda = '000000')
+
+# Adiciona as formatações das demais linhas escolhidas
+for linha in range(2,2001):
+        for col in range(1, 4):
+            celula = sheet_ODM.cell(row = linha, column = col)
+            celula.fill = PatternFill(start_color='FFFFFF', end_color = 'FFFFFF', fill_type = 'solid')
+            celula.font = Font(color = '000000', name = 'calibri', size = 11, bold = False)
+            celula.alignment = Alignment(horizontal = 'center', vertical = 'center', wrap_text = False)
+            celula.border = Border(left = Side(style = 'thin', color = '000000'),
+                                    right = Side(style = 'thin', color = '000000'),
+                                    top = Side(style = 'thin', color = '000000'),
+                                    bottom = Side(style = 'thin', color = '000000'))
+
+#=========================================================================================================================================================================================
+
+sheet_MVF = workbook['Mix de vendas e funcionários']
+
+# Adiciona a lista de valores na primeira linha da planilha
+linha1_MVF = [
+    'Nome do funcionário', 
+    'Nome do grupo de família', 
+    'Nome do grupo principal',
+    'Nº de Vendas',
+    'Quantidade'
+]
+for col, valor in enumerate(linha1_MVF, start = 1):
+    sheet_MVF.cell(row = 1, column = col, value = valor)
+
+# Adiciona a largura e altura das colunas
+largura_colunas = [
+20.00, 
+24.00, 
+23.00,
+13.00,
+12.00
+]
+for i, largura in enumerate(largura_colunas, start = 1):
+    sheet_MVF.column_dimensions[chr(64 + i)].width = largura
+
+# Adiciona as formatações da primeira linha
+formatar_linha2(sheet_MVF, cor_fundo = '9BC2E6', cor_fonte = '000000', cor_borda = '000000')
+
+# Adiciona as formatações das demais linhas escolhidas
+for linha in range(2,2001):
+        for col in range(1, 6):
+            celula = sheet_MVF.cell(row = linha, column = col)
+            celula.fill = PatternFill(start_color='FFFFFF', end_color = 'FFFFFF', fill_type = 'solid')
+            celula.font = Font(color = '000000', name = 'calibri', size = 11, bold = False)
+            celula.alignment = Alignment(horizontal = 'center', vertical = 'center', wrap_text = False)
+            celula.border = Border(left = Side(style = 'thin', color = '000000'),
+                                    right = Side(style = 'thin', color = '000000'),
+                                    top = Side(style = 'thin', color = '000000'),
+                                    bottom = Side(style = 'thin', color = '000000'))
+
+#=========================================================================================================================================================================================
+sheet_FF = workbook['Finanças dos funcionários']
+
+# Adiciona a lista de valores na primeira linha da planilha
+linha1_FF = [
+    'Nome do Funcionário', 
+    'Valor de Vendas Líquidas', 
+    'Valor das Taxas de Serviço', 
+    'Receita Total', 
+    'Taxa de Aproveitamento'
+]
+for col, valor in enumerate(linha1_FF, start = 1):
+    sheet_FF.cell(row = 1, column = col, value = valor)
+
+# Adiciona a largura e altura das colunas
+largura_colunas = [
+20.00, 
+23.00, 
+24.00,
+13.00,
+23.00
+]
+for i, largura in enumerate(largura_colunas, start = 1):
+    sheet_FF.column_dimensions[chr(64 + i)].width = largura
+
+# Converte a coluna J para Reais
+for row in range(1, sheet_FF.max_row + 1): 
+    cellFF = sheet_FF[f'B{row}']  
+    cellFF.number_format = 'R$ #,##0.00' 
+
+# Converte a coluna J para Reais
+for row in range(1, sheet_FF.max_row + 1): 
+    cellFF = sheet_FF[f'C{row}']  
+    cellFF.number_format = 'R$ #,##0.00' 
+
+# Converte a coluna J para Reais
+for row in range(1, sheet_FF.max_row + 1): 
+    cellFF = sheet_FF[f'D{row}']  
+    cellFF.number_format = 'R$ #,##0.00' 
+
+for row in range(1, sheet_FF.max_row + 1):
+    cell_porcentoFF = sheet_FF[f'E{row}']
+    cell_porcentoFF.number_format = '0.00%'
+
+# Adiciona as formatações da primeira linha
+formatar_linha2(sheet_FF, cor_fundo = '9BC2E6', cor_fonte = '000000', cor_borda = '000000')
+
+# Adiciona as formatações das demais linhas escolhidas
+for linha in range(2,2001):
+        for col in range(1, 6):
+            celula = sheet_FF.cell(row = linha, column = col)
+            celula.fill = PatternFill(start_color='FFFFFF', end_color = 'FFFFFF', fill_type = 'solid')
+            celula.font = Font(color = '000000', name = 'calibri', size = 11, bold = False)
+            celula.alignment = Alignment(horizontal = 'center', vertical = 'center', wrap_text = False)
+            celula.border = Border(left = Side(style = 'thin', color = '000000'),
+                                    right = Side(style = 'thin', color = '000000'),
+                                    top = Side(style = 'thin', color = '000000'),
+                                    bottom = Side(style = 'thin', color = '000000'))
+
+#=========================================================================================================================================================================================
+sheet_couvert = workbook['Couvert Artistico']
+
+# Adiciona a lista de valores na primeira linha da planilha
+linha1_couvert = [
+    'Quantidade de Vendas',
+    '',
+    '',
+    '',
+    '',
+    'Quantidade de anulações',
+    '',
+    '',
+    '']
+for col, valor in enumerate(linha1_couvert, start = 1):
+    sheet_couvert.cell(row = 1, column = col, value = valor)
+
+# Adiciona a largura e altura das colunas
+largura_colunas = [
+20.86, 
+15.00, 
+9.00, 
+9.00, 
+8.43, 
+23.14, 
+15.00, 
+9.00, 
+9.00, 
+22.00, 
+26.43, 
+36.29, 
+36.29
+]
+for i, largura in enumerate(largura_colunas, start = 1):
+    sheet_couvert.column_dimensions[chr(64 + i)].width = largura
+
+# Aplica fórmula para as colunas selecionadas
+sheet_couvert['K2'] = '=(G49/B49)'
+sheet_couvert['L2'] = '=(H49/C49)' 
+sheet_couvert['M2'] = '=(I49/D49)'
+
+# Converte todas as linhas da coluna J para valores nulos (Pois estavam repetidos)
+for row in range(3, sheet_couvert.max_row + 1): 
+    sheet_couvert[f'J{row}'] = None  
+
+# Converte a coluna J para Reais
+for row in range(1, sheet_couvert.max_row + 1): 
+    cell_Jcouvert = sheet_couvert[f'J{row}']  
+    cell_Jcouvert.number_format = 'R$ #,##0.00' 
+
+# Converte as colunas selecionadas para Porcentagem
+
+cell_porcento = sheet_couvert['K2']
+cell_porcento.number_format = '0.00%'  
+cell_porcento = sheet_couvert['L2']
+cell_porcento.number_format = '0.00%'  
+cell_porcento = sheet_couvert['M2']
+cell_porcento.number_format = '0.00%'
+
+# Adiciona as formatações da primeira linha
+formatar_linha(sheet_couvert, cor_fundo = '9BC2E6', cor_fonte = '000000', cor_borda = '000000')
+
+# Adiciona as formatações das demais linhas escolhidas
+for linha in range(2,2001):
+        for col in range(1, 14):
+            celula = sheet_couvert.cell(row = linha, column = col)
+            celula.fill = PatternFill(start_color='FFFFFF', end_color = 'FFFFFF', fill_type = 'solid')
+            celula.font = Font(color = '000000', name = 'calibri', size = 11, bold = False)
+            celula.alignment = Alignment(horizontal = 'center', vertical = 'center', wrap_text = False)
+            celula.border = Border(left = Side(style = 'thin', color = '000000'),
+                                    right = Side(style = 'thin', color = '000000'),
+                                    top = Side(style = 'thin', color = '000000'),
+                                    bottom = Side(style = 'thin', color = '000000'))
+            
+#=========================================================================================================================================================================================
+
+sheet_vinhos = workbook['Controle de Vinhos']
+
+# Adiciona a lista de valores na primeira linha da planilha
+linha1_vinhos = [
+    'Nome', 
+    'Total de Vendas Brutas', 
+    'Preço Médio'
+]
+for col, valor in enumerate(linha1_vinhos, start = 1):
+    sheet_vinhos.cell(row = 1, column = col, value = valor)
+
+# Adiciona a largura e altura das colunas
+largura_colunas = [
+    22.00, 
+    21.00, 
+    13.00
+]
+
+for i, largura in enumerate(largura_colunas, start = 1):
+    sheet_vinhos.column_dimensions[chr(64 + i)].width = largura
+
+# Converte a coluna B para reais
+for row in range(1, sheet_vinhos.max_row + 1): 
+    cell_Bvinho = sheet_vinhos[f'B{row}']  
+    cell_Bvinho.number_format = 'R$ #,##0.00'
+
+# Converte a coluna C para reais
+for row in range(1, sheet_vinhos.max_row + 1): 
+    cell_Cvinho = sheet_vinhos[f'C{row}']  
+    cell_Cvinho.number_format = 'R$ #,##0.00' 
+
+# Adiciona as formatações da primeira linha
+formatar_linha1(sheet_vinhos, cor_fundo = '9BC2E6', cor_fonte = '000000', cor_borda = '000000')
+formatar_linha3(sheet_vinhos, cor_fundo = 'FFFFFF', cor_fonte = '000000', cor_borda = '000000')
+
+# Adiciona as formatações das demais linhas escolhidas
+for linha in range(3,2001):
+        for col in range(1, 4):
+            celula = sheet_vinhos.cell(row = linha, column = col)
+            celula.fill = PatternFill(start_color='FFFFFF', end_color = 'FFFFFF', fill_type = 'solid')
+            celula.font = Font(color = '000000', name = 'calibri', size = 11, bold = False)
+            celula.alignment = Alignment(horizontal = 'center', vertical = 'center', wrap_text = False)
+            celula.border = Border(left = Side(style = 'thin', color = '000000'),
+                                    right = Side(style = 'thin', color = '000000'),
+                                    top = Side(style = 'thin', color = '000000'),
+                                    bottom = Side(style = 'thin', color = '000000'))
+
+#=========================================================================================================================================================================================
+
+# Salva a planilha
+workbook.save('Relatório Geral.xlsx')
