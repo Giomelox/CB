@@ -32,7 +32,7 @@ def formatar_linha1(worksheet, cor_fundo, cor_fonte, cor_borda):
                                    )
             
 def formatar_linha2(worksheet, cor_fundo, cor_fonte, cor_borda):
-    for linha in worksheet.iter_rows(min_row = 1, max_row = 1, min_col = 1, max_col = 5):
+    for linha in worksheet.iter_rows(min_row = 1, max_row = 1, min_col = 1, max_col = 6):
         for celula in linha:
             celula.fill = PatternFill(start_color = cor_fundo, end_color = cor_fundo, fill_type = 'solid')
             celula.font = Font(color = cor_fonte, name = 'calibri', size = 11, bold = True)
@@ -55,6 +55,17 @@ def formatar_linha3(worksheet, cor_fundo, cor_fonte, cor_borda):
                                    bottom = Side (style = 'thin', color = cor_borda),
                                    )
 
+def formatar_linha4(worksheet, cor_fundo, cor_fonte, cor_borda):
+    for linha in worksheet.iter_rows(min_row = 1, max_row = 1, min_col = 1, max_col = 5):
+        for celula in linha:
+            celula.fill = PatternFill(start_color = cor_fundo, end_color = cor_fundo, fill_type = 'solid')
+            celula.font = Font(color = cor_fonte, name = 'calibri', size = 11, bold = True)
+            celula.alignment = Alignment(horizontal = 'center', vertical = 'center', wrap_text = True)
+            celula.border = Border(left = Side (style = 'thin', color = cor_borda),
+                                   right = Side (style = 'thin', color = cor_borda),
+                                   top = Side (style = 'thin', color = cor_borda),
+                                   bottom = Side (style = 'thin', color = cor_borda),
+                                   )
 
 def exibir_mensagem(mensagem):
     campo_texto.insert(tk.END, mensagem + "\n")
@@ -294,8 +305,6 @@ def processar_arquivos():
 
     return dataframes
 
-
-
 #=========================================================================================================================================================================================
 
 def juntar_planilhas():
@@ -373,8 +382,12 @@ def juntar_planilhas():
         'Nome do grupo de família', 
         'Nome do grupo principal',
         'Nº de Vendas',
-        'Quantidade'
+        'Quantidade',
+        'Quantidade de Vendas'
     ]
+    for row in range(2,2001):
+        sheet_MVF[f'F{row}'] = f'=(D{row}+E{row})'
+
     for col, valor in enumerate(linha1_MVF, start = 1):
         sheet_MVF.cell(row = 1, column = col, value = valor)
 
@@ -384,17 +397,19 @@ def juntar_planilhas():
     24.00, 
     23.00,
     13.00,
-    12.00
+    12.00,
+    20.86
     ]
     for i, largura in enumerate(largura_colunas, start = 1):
         sheet_MVF.column_dimensions[chr(64 + i)].width = largura
+
 
     # Adiciona as formatações da primeira linha
     formatar_linha2(sheet_MVF, cor_fundo = '9BC2E6', cor_fonte = '000000', cor_borda = '000000')
 
     # Adiciona as formatações das demais linhas escolhidas
     for linha in range(2,2001):
-            for col in range(1, 6):
+            for col in range(1, 7):
                 celula = sheet_MVF.cell(row = linha, column = col)
                 celula.fill = PatternFill(start_color='FFFFFF', end_color = 'FFFFFF', fill_type = 'solid')
                 celula.font = Font(color = '000000', name = 'calibri', size = 11, bold = False)
@@ -451,7 +466,7 @@ def juntar_planilhas():
     sheet_FF.delete_rows(2)
 
     # Adiciona as formatações da primeira linha
-    formatar_linha2(sheet_FF, cor_fundo = '9BC2E6', cor_fonte = '000000', cor_borda = '000000')
+    formatar_linha4(sheet_FF, cor_fundo = '9BC2E6', cor_fonte = '000000', cor_borda = '000000')
 
     # Adiciona as formatações das demais linhas escolhidas
     for linha in range(2,2001):
@@ -592,24 +607,21 @@ def juntar_planilhas():
     workbook.save('Relatório Geral.xlsx')
 
     exibir_mensagem(f"Processado: {arquivo_destino}")
+
 #=========================================================================================================================================================================================
     
-
 # Criar a janela principal
 janela = tk.Tk()
 janela.title("Selecionar Arquivos")
 janela.geometry("900x800")
 
-
 # Criar botão para selecionar arquivos
 btn_selecionar = tk.Button(janela, text = "Selecionar Arquivos", command = selecionar_arquivos)
 btn_selecionar.pack(pady = 20)
 
-
-
 # Legenda acima da caixa de mensagens
 label_mensagens = tk.Label(janela, text="Arquivos selecionados:")
-label_mensagens.pack(pady=5)
+label_mensagens.pack(pady = 5)
 # Criar uma lista para exibir os arquivos selecionados
 lista_arquivos = tk.Listbox(janela, width = 100, height = 15)
 lista_arquivos.pack(pady = 10)
@@ -620,11 +632,11 @@ btn_processar = tk.Button(janela, text = "Processar planilhas", command = proces
 btn_processar.pack(pady = 20)
 
 # Legenda acima da caixa de mensagens
-label_mensagens = tk.Label(janela, text="Progresso dos arquivos:")
-label_mensagens.pack(pady=5)
+label_mensagens = tk.Label(janela, text = "Progresso dos arquivos:")
+label_mensagens.pack(pady = 5)
 # Campo de texto para exibir as mensagens de progresso
-campo_texto = tk.Text(janela, height=10, width=60)
-campo_texto.pack(pady=10)
+campo_texto = tk.Text(janela, height = 10, width = 60)
+campo_texto.pack(pady = 10)
 
 # Criar botão para processar arquivos
 btn_processar = tk.Button(janela, text = "Juntar todas as planilhas \n (Obs: Use apenas depois das planilhas serem processadas)", command = juntar_planilhas)
