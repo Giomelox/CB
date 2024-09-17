@@ -246,12 +246,12 @@ def processar_arquivos():
 
                     # Selecionar os dados e converter para objeto
                     valor_couvert = df_valorcouvert.iloc[9, 2]
-                    couvert = df_couvert.iloc[2:, 1:10]
+                    couvert = df_couvert.iloc[3:, 1:10]
 
                     couvert['Valor anulado couvert'] = valor_couvert
-                    couvert['Porcentagem Anulados Salão'] = '=(G49/B49)'
-                    couvert['Porcentagem Anulados Vasto Program 2'] = '=(H49/C49)'
-                    couvert['Porcentagem Anulados Vasto Program 3'] = '=(I49/D49)'
+                    couvert['Porcentagem Anulados Salão'] = '=(G48/B48)'
+                    couvert['Porcentagem Anulados Vasto Program 2'] = '=(H48/C48)'
+                    couvert['Porcentagem Anulados Vasto Program 3'] = '=(I48/D48)'
 
                     # Armazenar o DataFrame no dicionário
                     dataframes[nome_arquivo] = couvert
@@ -352,7 +352,7 @@ def juntar_planilhas():
     for i, largura in enumerate(largura_colunas, start = 1):
         sheet_ODM.column_dimensions[chr(64 + i)].width = largura
 
-    # Converte a coluna J para Reais
+    # Converte a coluna B para Reais
     for row in range(1, sheet_ODM.max_row + 1): 
         cellODM = sheet_ODM[f'B{row}']  
         cellODM.number_format = 'R$ #,##0.00'
@@ -481,78 +481,98 @@ def juntar_planilhas():
                                         bottom = Side(style = 'thin', color = '000000'))
 
     #=========================================================================================================================================================================================
+    # Carregar a planilha e aplicar as formatações
     sheet_couvert = workbook['Couvert Artistico']
 
     # Adiciona a lista de valores na primeira linha da planilha
     linha1_couvert = [
         'Quantidade de Vendas',
-        '',
-        '',
-        '',
+        'Program artistic 1',
+        'Program artistic 2',
+        'Program artistic 3',
         '',
         'Quantidade de anulações',
-        '',
-        '',
-        '']
-    for col, valor in enumerate(linha1_couvert, start = 1):
-        sheet_couvert.cell(row = 1, column = col, value = valor)
+        'Program artistic 4',
+        'Program artistic 5',
+        'Program artistic 6']
+    for col, valor in enumerate(linha1_couvert, start=1):
+        sheet_couvert.cell(row=1, column=col, value=valor)
 
     # Adiciona a largura e altura das colunas
     largura_colunas = [
-    20.86, 
-    15.00, 
-    9.00, 
-    9.00, 
-    8.43, 
-    23.14, 
-    15.00, 
-    9.00, 
-    9.00, 
-    22.00, 
-    26.43, 
-    36.29, 
-    36.29
+        20.86, 
+        16.00, 
+        16.00, 
+        16.00, 
+        8.43, 
+        23.14, 
+        16.00, 
+        16.00, 
+        16.00, 
+        22.00, 
+        26.43, 
+        36.29, 
+        36.29
     ]
-    for i, largura in enumerate(largura_colunas, start = 1):
+    for i, largura in enumerate(largura_colunas, start=1):
         sheet_couvert.column_dimensions[chr(64 + i)].width = largura
 
     # Aplica fórmula para as colunas selecionadas
-    sheet_couvert['K2'] = '=(G49/B49)'
-    sheet_couvert['L2'] = '=(H49/C49)' 
-    sheet_couvert['M2'] = '=(I49/D49)'
+    sheet_couvert['K2'] = '=(G48/B48)'
+    sheet_couvert['L2'] = '=(H48/C48)'
+    sheet_couvert['M2'] = '=(I48/D48)'
 
     # Converte todas as linhas da coluna J para valores nulos (Pois estavam repetidos)
-    for row in range(3, sheet_couvert.max_row + 1): 
-        sheet_couvert[f'J{row}'] = None  
+    for row in range(3, sheet_couvert.max_row + 1):
+        sheet_couvert[f'J{row}'] = None
 
     # Converte a coluna J para Reais
-    for row in range(1, sheet_couvert.max_row + 1): 
-        cell_Jcouvert = sheet_couvert[f'J{row}']  
-        cell_Jcouvert.number_format = 'R$ #,##0.00' 
+    for row in range(1, sheet_couvert.max_row + 1):
+        cell_Jcouvert = sheet_couvert[f'J{row}']
+        cell_Jcouvert.number_format = 'R$ #,##0.00'
 
     # Converte as colunas selecionadas para Porcentagem
-
     cell_porcento = sheet_couvert['K2']
-    cell_porcento.number_format = '0.00%'  
+    cell_porcento.number_format = '0.00%'
     cell_porcento = sheet_couvert['L2']
-    cell_porcento.number_format = '0.00%'  
+    cell_porcento.number_format = '0.00%'
     cell_porcento = sheet_couvert['M2']
     cell_porcento.number_format = '0.00%'
 
-    # Adiciona as formatações da primeira linha
-    formatar_linha(sheet_couvert, cor_fundo = '9BC2E6', cor_fonte = '000000', cor_borda = '000000')
+    # Converte os valores da coluna B para números
+    for row in range(2, sheet_couvert.max_row + 1):
+        cell_B = sheet_couvert[f'B{row}']
+        cell_G = sheet_couvert[f'G{row}']
+        if isinstance(cell_B.value, str):  # Verifica se o valor é texto
+            try:
+                cell_B.value = int(cell_B.value.replace(",", "").strip())  # Converte para número
+            except ValueError:
+                pass  # Ignora valores que não podem ser convertidos
 
-    # Adiciona as formatações das demais linhas escolhidas
-    for linha in range(2,2001):
-            for col in range(1, 14):
-                celula = sheet_couvert.cell(row = linha, column = col)
-                celula.fill = PatternFill(start_color='FFFFFF', end_color = 'FFFFFF', fill_type = 'solid')
-                celula.font = Font(color = '000000', name = 'calibri', size = 11, bold = False)
-                celula.alignment = Alignment(horizontal = 'center', vertical = 'center', wrap_text = False)
-                celula.border = Border(left = Side(style = 'thin', color = '000000'),
-                                        right = Side(style = 'thin', color = '000000'),
-                                        top = Side(style = 'thin', color = '000000'),
-                                        bottom = Side(style = 'thin', color = '000000'))
+    # Converte os valores da coluna B para números
+    for row in range(2, sheet_couvert.max_row + 1):
+        cell_G = sheet_couvert[f'G{row}']
+        if isinstance(cell_G.value, str):  # Verifica se o valor é texto
+            try:
+                cell_G.value = int(cell_G.value.replace(",", "").strip())  # Converte para número
+            except ValueError:
+                pass  # Ignora valores que não podem ser convertidos        
+
+    # Adiciona as formatações da primeira linha
+    formatar_linha(sheet_couvert, cor_fundo='9BC2E6', cor_fonte='000000', cor_borda='000000')
+
+# Adiciona as formatações das demais linhas escolhidas
+    for linha in range(2, 2001):
+        for col in range(1, 14):
+            celula = sheet_couvert.cell(row=linha, column=col)
+            celula.fill = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
+            celula.font = Font(color='000000', name='calibri', size=11, bold=False)
+            celula.alignment = Alignment(horizontal='center', vertical='center', wrap_text=False)
+            celula.border = Border(left=Side(style='thin', color='000000'),
+                                right=Side(style='thin', color='000000'),
+                                top=Side(style='thin', color='000000'),
+                                bottom=Side(style='thin', color='000000'))
+
                 
     #=========================================================================================================================================================================================
 
@@ -609,7 +629,13 @@ def juntar_planilhas():
     exibir_mensagem(f"Processado: {arquivo_destino}")
 
 #=========================================================================================================================================================================================
-    
+import subprocess
+import os
+
+def iniciar_dash():
+    subprocess.Popen(['python', 'C:\\Users\\Giovanni\\Desktop\\⠀\\Program\\Teste python\\Coco bambu\\Graficos.py'], shell=True)
+
+
 # Criar a janela principal
 janela = tk.Tk()
 janela.title("Selecionar Arquivos")
@@ -641,6 +667,10 @@ campo_texto.pack(pady = 10)
 # Criar botão para processar arquivos
 btn_processar = tk.Button(janela, text = "Juntar todas as planilhas \n (Obs: Use apenas depois das planilhas serem processadas)", command = juntar_planilhas)
 btn_processar.pack(pady = 20)
+
+# Criar botão para criar o gráfico
+btn_grafico = tk.Button(janela, text = 'Criar Dashboards', command = iniciar_dash)
+btn_grafico.pack(pady = 20)
 
 # Iniciar o loop da interface
 janela.mainloop()
