@@ -631,15 +631,21 @@ def juntar_planilhas():
 #=========================================================================================================================================================================================
 import subprocess
 import os
+import time
 
 def iniciar_dash():
-    subprocess.Popen(['python', 'C:\\Users\\Giovanni\\Desktop\\⠀\\Program\\Teste python\\Coco bambu\\Graficos.py'], shell=True)
+    try:
+        subprocess.Popen(['python', 'C:\\Users\\Giovanni\\Desktop\\⠀\\Program\\Teste python\\Coco bambu\\Graficos.py'], shell = True)
+        time.sleep(5)
+        exibir_mensagem('\nDashboard criado com sucesso!\npara acessar seu dashboard, copie e cole isto no seu navegador web:\n\n http://127.0.0.1:8050/')
+    except Exception as e:
+        exibir_mensagem(f'Não foi possível criar o dashboard: {e}')
 
 
 # Criar a janela principal
 janela = tk.Tk()
 janela.title("Selecionar Arquivos")
-janela.geometry("900x800")
+janela.geometry("900x900")
 
 # Criar botão para selecionar arquivos
 btn_selecionar = tk.Button(janela, text = "Selecionar Arquivos", command = selecionar_arquivos)
@@ -661,7 +667,7 @@ btn_processar.pack(pady = 20)
 label_mensagens = tk.Label(janela, text = "Progresso dos arquivos:")
 label_mensagens.pack(pady = 5)
 # Campo de texto para exibir as mensagens de progresso
-campo_texto = tk.Text(janela, height = 10, width = 60)
+campo_texto = tk.Text(janela, width = 70, height = 15)
 campo_texto.pack(pady = 10)
 
 # Criar botão para processar arquivos
