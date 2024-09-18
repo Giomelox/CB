@@ -39,7 +39,8 @@ app.layout = html.Div(children=[
         style={'display': 'none'}  # Inicialmente invisível
     ),
 
-    dcc.Graph(id='dashboard_graph')
+    dcc.Graph(id='dashboard_graph_1'),  # Primeiro gráfico
+    dcc.Graph(id='dashboard_graph_2')   # Segundo gráfico
 ])
 
 # Callback para atualizar a lista de opções do dropdown de filtros com base no dashboard selecionado
@@ -76,14 +77,16 @@ def update_dropdown_options(selected_dashboard):
 
 # Callback para atualizar o gráfico com base no dashboard e filtro selecionado
 @app.callback(
-    Output('dashboard_graph', 'figure'),
-    Input('escolhas_dashboards', 'value'),
-    Input('dropdown_filtros', 'value')
+    [Output('dashboard_graph_1', 'figure'),
+     Output('dashboard_graph_2', 'figure')],
+    [Input('escolhas_dashboards', 'value'),
+     Input('dropdown_filtros', 'value')]
 )
 def update_output(selected_dashboard, selected_filter):
     if selected_dashboard == 'Operações diárias do mês':
         df = planilhas['Operações diárias do mês']
         fig = px.bar(df, x='Centros', y=['Vendas','Contas'], barmode='group')
+        return fig, {}  # Retorna o gráfico principal e um gráfico vazio
 
     elif selected_dashboard == 'Mix de vendas e funcionários':
         df = planilhas['Mix de vendas e funcionários']
@@ -94,6 +97,7 @@ def update_output(selected_dashboard, selected_filter):
             df_agregado = df_agregado[df_agregado['Nome do funcionário'] == selected_filter]
 
         fig = px.bar(df_agregado, x='Nome do funcionário', y=['Nº de Vendas', 'Quantidade'], barmode='group')
+        return fig, {}  # Um gráfico, outro vazio
 
     elif selected_dashboard == 'Finanças dos funcionários':
         df = planilhas['Finanças dos funcionários']
@@ -104,6 +108,7 @@ def update_output(selected_dashboard, selected_filter):
             df_agregado_financas = df_agregado_financas[df_agregado_financas['Nome do Funcionário'] == selected_filter]
 
         fig = px.bar(df_agregado_financas, x='Nome do Funcionário', y=['Valor de Vendas Líquidas', 'Valor das Taxas de Serviço', 'Receita Total'], barmode='group')
+        return fig, {}
 
     elif selected_dashboard == 'Couvert Artistico':
         df = planilhas['Couvert Artistico']
@@ -112,7 +117,19 @@ def update_output(selected_dashboard, selected_filter):
         if selected_filter:
             df = df[df['Quantidade de Vendas'] == selected_filter]
 
+        # Primeiro gráfico
         fig = px.bar(df, x='Quantidade de Vendas', y=['Program artistic 1', 'Program artistic 2', 'Program artistic 3'], barmode='group')
+
+        # Filtrar por quantidade de anulações, se algum for selecionado
+        if selected_filter:
+            df_anulacoes = df[df['Quantidade de anulações'] == selected_filter]
+        else:
+            df_anulacoes = df
+
+        # Segundo gráfico
+        fig1 = px.bar(df_anulacoes, x='Quantidade de anulações', y=['Program artistic 4', 'Program artistic 5', 'Program artistic 6'], barmode='group')
+
+        return fig, fig1  # Retorna ambos os gráficos
 
     elif selected_dashboard == 'Controle de Vinhos':
         df = planilhas['Controle de Vinhos']
@@ -122,11 +139,11 @@ def update_output(selected_dashboard, selected_filter):
             df = df[df['Nome'] == selected_filter]
 
         fig = px.bar(df, x='Nome', y=['Total de Vendas Brutas', 'Preço Médio'], barmode='group')
+        return fig, {}
 
     else:
         fig = px.bar()  # Gráfico vazio ou padrão
-
-    return fig
+        return fig, {}
 
 # Execução do aplicativo
 if __name__ == '__main__':
