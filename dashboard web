@@ -1,0 +1,133 @@
+from dash import Dash, html, dcc, Input, Output
+import plotly.express as px
+import pandas as pd
+
+# Inicialização do aplicativo Dash
+app = Dash(__name__)
+
+# Leitura dos dados de todas as planilhas
+planilhas = {
+    'Operações diárias do mês': pd.read_excel('Relatório Geral.xlsx', sheet_name='Operações diárias do mês'),
+    'Mix de vendas e funcionários': pd.read_excel('Relatório Geral.xlsx', sheet_name='Mix de vendas e funcionários'),
+    'Finanças dos funcionários': pd.read_excel('Relatório Geral.xlsx', sheet_name='Finanças dos funcionários'),
+    'Couvert Artistico': pd.read_excel('Relatório Geral.xlsx', sheet_name='Couvert Artistico').iloc[:-1],
+    'Controle de Vinhos': pd.read_excel('Relatório Geral.xlsx', sheet_name='Controle de Vinhos').iloc[1:],
+    # Adicione outras planilhas conforme necessário
+}
+
+# Função para agregar dados para o dashboard de 'Mix de vendas e funcionários'
+def agregar_dados(df):
+    return df.groupby('Nome do funcionário', as_index=False).agg({'Nº de Vendas': 'sum', 'Quantidade': 'sum'})
+
+def agregar_dados_finanças(df):
+    return df.groupby('Nome do Funcionário', as_index=False).agg({'Valor de Vendas Líquidas': 'sum', 'Valor das Taxas de Serviço': 'sum', 'Receita Total': 'sum'})
+
+# Layout do aplicativo
+app.layout = html.Div(children=[
+    dcc.Dropdown(
+        options=[{'label': sheet_name, 'value': sheet_name} for sheet_name in planilhas.keys()],
+        value='Operações diárias do mês',
+        id='escolhas_dashboards'
+    ),
+    html.H1(children='Dashboard'),
+
+    # Dropdown genérico para filtrar os dados com base no dashboard
+    dcc.Dropdown(
+        id='dropdown_filtros',
+        placeholder="Selecione uma opção",
+        multi=False,  # Se quiser múltipla seleção, mude para True
+        style={'display': 'none'}  # Inicialmente invisível
+    ),
+
+    dcc.Graph(id='dashboard_graph')
+])
+
+# Callback para atualizar a lista de opções do dropdown de filtros com base no dashboard selecionado
+@app.callback(
+    Output('dropdown_filtros', 'options'),
+    Output('dropdown_filtros', 'style'),
+    Input('escolhas_dashboards', 'value')
+)
+def update_dropdown_options(selected_dashboard):
+    if selected_dashboard == 'Mix de vendas e funcionários':
+        df = planilhas['Mix de vendas e funcionários']
+        options = [{'label': funcionario, 'value': funcionario} for funcionario in df['Nome do funcionário'].unique()]
+        return options, {'display': 'block'}  # Torna o dropdown visível
+
+    elif selected_dashboard == 'Finanças dos funcionários':
+        df = planilhas['Finanças dos funcionários']
+        options = [{'label': funcionario, 'value': funcionario} for funcionario in df['Nome do Funcionário'].unique()]
+        return options, {'display': 'block'}  # Torna o dropdown visível
+
+    elif selected_dashboard == 'Couvert Artistico':
+        df = planilhas['Couvert Artistico']
+        
+        # Aqui preenchemos o dropdown com base na coluna "Quantidade de Vendas"
+        options = [{'label': str(quantidade), 'value': quantidade} for quantidade in df['Quantidade de Vendas'].unique()]
+        return options, {'display': 'block'}  # Torna o dropdown visível
+
+    elif selected_dashboard == 'Controle de Vinhos':
+        df = planilhas['Controle de Vinhos']
+        options = [{'label': nome, 'value': nome} for nome in df['Nome'].unique()]
+        return options, {'display': 'block'}  # Torna o dropdown visível
+
+    else:
+        return [], {'display': 'none'}  # Esconde o dropdown para outros dashboards
+
+# Callback para atualizar o gráfico com base no dashboard e filtro selecionado
+@app.callback(
+    Output('dashboard_graph', 'figure'),
+    Input('escolhas_dashboards', 'value'),
+    Input('dropdown_filtros', 'value')
+)
+def update_output(selected_dashboard, selected_filter):
+    if selected_dashboard == 'Operações diárias do mês':
+        df = planilhas['Operações diárias do mês']
+        fig = px.bar(df, x='Centros', y=['Vendas','Contas'], barmode='group')
+
+    elif selected_dashboard == 'Mix de vendas e funcionários':
+        df = planilhas['Mix de vendas e funcionários']
+        df_agregado = agregar_dados(df)
+
+        # Filtrar por funcionário, se algum for selecionado
+        if selected_filter:
+            df_agregado = df_agregado[df_agregado['Nome do funcionário'] == selected_filter]
+
+        fig = px.bar(df_agregado, x='Nome do funcionário', y=['Nº de Vendas', 'Quantidade'], barmode='group')
+
+    elif selected_dashboard == 'Finanças dos funcionários':
+        df = planilhas['Finanças dos funcionários']
+        df_agregado_financas = agregar_dados_finanças(df)
+
+        # Filtrar por funcionário, se algum for selecionado
+        if selected_filter:
+            df_agregado_financas = df_agregado_financas[df_agregado_financas['Nome do Funcionário'] == selected_filter]
+
+        fig = px.bar(df_agregado_financas, x='Nome do Funcionário', y=['Valor de Vendas Líquidas', 'Valor das Taxas de Serviço', 'Receita Total'], barmode='group')
+
+    elif selected_dashboard == 'Couvert Artistico':
+        df = planilhas['Couvert Artistico']
+
+        # Filtrar por quantidade de vendas, se algum for selecionado
+        if selected_filter:
+            df = df[df['Quantidade de Vendas'] == selected_filter]
+
+        fig = px.bar(df, x='Quantidade de Vendas', y=['Program artistic 1', 'Program artistic 2', 'Program artistic 3'], barmode='group')
+
+    elif selected_dashboard == 'Controle de Vinhos':
+        df = planilhas['Controle de Vinhos']
+
+        # Filtrar por nome de vinho, se algum for selecionado
+        if selected_filter:
+            df = df[df['Nome'] == selected_filter]
+
+        fig = px.bar(df, x='Nome', y=['Total de Vendas Brutas', 'Preço Médio'], barmode='group')
+
+    else:
+        fig = px.bar()  # Gráfico vazio ou padrão
+
+    return fig
+
+# Execução do aplicativo
+if __name__ == '__main__':
+    app.run(debug=True)
