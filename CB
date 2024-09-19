@@ -632,10 +632,13 @@ def juntar_planilhas():
 import subprocess
 import os
 import time
+from pathlib import Path
 
 def iniciar_dash():
     try:
-        subprocess.Popen(['python', 'C:\\Users\\Giovanni\\Desktop\\⠀\\Program\\Teste python\\Coco bambu\\Graficos.py'], shell = True)
+        current_dir = Path(__file__).parent
+        aux_script_path = current_dir / 'Graficos.py'
+        subprocess.Popen(['python', str(aux_script_path)], shell=True)
         time.sleep(5)
         exibir_mensagem('\nDashboard criado com sucesso!\npara acessar seu dashboard, copie e cole isto no seu navegador web:\n\n http://127.0.0.1:8050/')
     except Exception as e:
